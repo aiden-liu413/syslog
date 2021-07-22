@@ -1,0 +1,1 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=com.cloudwise.syslog4j.autoconfig.SyslogAutoconfig
