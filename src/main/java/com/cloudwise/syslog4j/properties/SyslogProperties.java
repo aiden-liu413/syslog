@@ -29,7 +29,27 @@ public class SyslogProperties {
     @Data
     public static class SyslogConfig {
         String host;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            SyslogConfig that = (SyslogConfig) o;
+
+            if (port != that.port) return false;
+            return host != null ? host.equals(that.host) : that.host == null;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = host != null ? host.hashCode() : 0;
+            result = 31 * result + port;
+            return result;
+        }
+
         int port;
         Protocol protocol;
+        String handlerClass;
     }
 }

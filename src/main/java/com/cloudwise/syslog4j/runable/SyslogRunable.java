@@ -12,6 +12,8 @@ import org.productivity.java.syslog4j.server.SyslogServerIF;
 import org.productivity.java.syslog4j.server.impl.net.tcp.TCPNetSyslogServerConfig;
 import org.productivity.java.syslog4j.server.impl.net.udp.UDPNetSyslogServerConfig;
 
+import java.util.Arrays;
+
 
 /**
  * @author Aiden.Liu
@@ -20,16 +22,16 @@ import org.productivity.java.syslog4j.server.impl.net.udp.UDPNetSyslogServerConf
  */
 @AllArgsConstructor
 @NoArgsConstructor
-public class SyslogRunable implements Runnable{
+public class SyslogRunable implements Runnable {
 
     SyslogProperties.SyslogConfig syslogConfig;
 
-    SyslogServerConfigIF fillConfig(SyslogProperties.SyslogConfig syslogConfig){
+    SyslogServerConfigIF fillConfig(SyslogProperties.SyslogConfig syslogConfig) {
         SyslogServerConfigIF config;
         int port = syslogConfig.getPort();
         String host = syslogConfig.getHost();
 
-        switch (syslogConfig.getProtocol()){
+        switch (syslogConfig.getProtocol()) {
             case TCP:
                 config = new TCPNetSyslogServerConfig(host, port);
                 break;
@@ -45,15 +47,24 @@ public class SyslogRunable implements Runnable{
     public void run() {
         SyslogServerConfigIF config = fillConfig(syslogConfig);
         String protocol = syslogConfig.getProtocol().getValue();
-        if(null != SyslogServerStore.get(config)){
+        if (null != SyslogServerStore.get(config)) {
             return;
         }
-        config.addEventHandler(new SyslogServerEventHandlerIF() {
-            @Override
-            public void event(SyslogServerIF syslogServerIF, SyslogServerEventIF syslogServerEventIF) {
-                System.out.println("receive from:" + syslogServerEventIF.getHost() + "\tmessage:\t" + syslogServerEventIF.getMessage());
+        String handlerClassStr = syslogConfig.getHandlerClass();
+        if (null == handlerClassStr || "".equals(handlerClassStr)) {
+            return;
+        } else {
+            try {
+                Class<?> handlerClass = Class.forName(handlerClassStr);
+                Object handler = handlerClass.newInstance();
+                if (!(handler instanceof SyslogServerEventHandlerIF)) {
+                    throw new RuntimeException("the handler must implements the interface that named SyslogServerEventHandlerIF");
+                }
+                config.addEventHandler((SyslogServerEventHandlerIF) handler);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        });
+        }
         SyslogServerIF syslogServer = execSyslogServer(config, protocol);
         SyslogServerStore.put(config, syslogServer);
     }
@@ -62,7 +73,7 @@ public class SyslogRunable implements Runnable{
         SyslogServerIF syslogServer;
         try {
             Class syslogClass = config.getSyslogServerClass();
-            syslogServer = (SyslogServerIF)syslogClass.newInstance();
+            syslogServer = (SyslogServerIF) syslogClass.newInstance();
         } catch (ClassCastException var7) {
             throw new SyslogRuntimeException(var7);
         } catch (IllegalAccessException var8) {
@@ -74,7 +85,7 @@ public class SyslogRunable implements Runnable{
 
         if (syslogServer.getThread() == null) {
             Thread thread = new Thread(syslogServer);
-            thread.setName("SyslogServer: " + config.getHost()+ ":" + config.getPort() + "-" + protocol);
+            thread.setName("SyslogServer: " + config.getHost() + ":" + config.getPort() + "-" + protocol);
             syslogServer.setThread(thread);
             thread.start();
         }
