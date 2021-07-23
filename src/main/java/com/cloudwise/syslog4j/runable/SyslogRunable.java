@@ -1,5 +1,6 @@
 package com.cloudwise.syslog4j.runable;
 
+import com.cloudwise.syslog4j.handler.SyslogServerhandler;
 import com.cloudwise.syslog4j.properties.SyslogProperties;
 import com.cloudwise.syslog4j.store.SyslogServerStore;
 import lombok.AllArgsConstructor;
@@ -11,6 +12,7 @@ import org.productivity.java.syslog4j.server.SyslogServerEventIF;
 import org.productivity.java.syslog4j.server.SyslogServerIF;
 import org.productivity.java.syslog4j.server.impl.net.tcp.TCPNetSyslogServerConfig;
 import org.productivity.java.syslog4j.server.impl.net.udp.UDPNetSyslogServerConfig;
+import org.springframework.context.ApplicationContext;
 
 import java.util.Arrays;
 
@@ -25,6 +27,8 @@ import java.util.Arrays;
 public class SyslogRunable implements Runnable {
 
     SyslogProperties.SyslogConfig syslogConfig;
+
+    ApplicationContext context;
 
     SyslogServerConfigIF fillConfig(SyslogProperties.SyslogConfig syslogConfig) {
         SyslogServerConfigIF config;
@@ -57,9 +61,10 @@ public class SyslogRunable implements Runnable {
             try {
                 Class<?> handlerClass = Class.forName(handlerClassStr);
                 Object handler = handlerClass.newInstance();
-                if (!(handler instanceof SyslogServerEventHandlerIF)) {
+                if (!(handler instanceof SyslogServerhandler)) {
                     throw new RuntimeException("the handler must implements the interface that named SyslogServerEventHandlerIF");
                 }
+                ((SyslogServerhandler)handler).init(context);
                 config.addEventHandler((SyslogServerEventHandlerIF) handler);
             } catch (Exception e) {
                 e.printStackTrace();

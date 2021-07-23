@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.type.AnnotatedTypeMetadata;
@@ -35,6 +36,8 @@ public class SyslogAutoconfig implements InitializingBean {
     @Autowired
     SyslogProperties syslogProperties;
 
+    @Autowired
+    ApplicationContext context;
 
     @Override
     public void afterPropertiesSet() {
@@ -57,7 +60,7 @@ public class SyslogAutoconfig implements InitializingBean {
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());//配置拒绝策略
         executor.initialize();
         serverList.forEach(k -> {
-            executor.execute(new SyslogRunable(k));
+            executor.execute(new SyslogRunable(k, context));
         });
         log.info(">>>>>syslog启动");
         log.info(">>>>>有效启动参数：" + serverList);
