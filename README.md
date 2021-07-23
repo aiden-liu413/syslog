@@ -14,18 +14,21 @@ syslog-spring-boot-starter
 ```yaml
 cloudwise:
   syslog:
-    #enable为false 则syslog配置不生效
     #enable: false
     server:
       - host: 0.0.0.0
         port: 1231
         protocol: UDP
+        handlerClass: org.productivity.java.syslog4j.server.impl.event.printstream.SystemErrSyslogServerEventHandler
       - host: 0.0.0.0
         port: 1121
         protocol: UDP
+        handlerClass: org.productivity.java.syslog4j.server.impl.event.printstream.SystemErrSyslogServerEventHandler
       - host: 0.0.0.0
         port: 7777
         protocol: UDP
+        handlerClass: org.productivity.java.syslog4j.server.impl.event.printstream.SystemErrSyslogServerEventHandler
+
 ```
 - 启动示例
 ![图片](https://user-images.githubusercontent.com/44597411/126607211-bfdba270-9de1-4e7b-ad26-ec75747a6cf6.png)
