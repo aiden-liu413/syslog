@@ -51,8 +51,8 @@ public class SyslogAutoconfig implements InitializingBean {
                 .filter(p -> StringUtils.hasText(p.getHandlerClass())).distinct()
                 .collect(Collectors.toList());
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        int i = Runtime.getRuntime().availableProcessors();//获取到服务器的cpu内核
-        executor.setCorePoolSize(2 * i);//核心池大小
+        //int i = Runtime.getRuntime().availableProcessors();//获取到服务器的cpu内核
+        executor.setCorePoolSize(serverList.size());//核心池大小
         executor.setMaxPoolSize(100);//最大线程数
         executor.setQueueCapacity(1000);//队列程度
         executor.setKeepAliveSeconds(1000);//线程空闲时间
